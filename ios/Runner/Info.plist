@@ -4,6 +4,12 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Take a photo of something you wish for.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Pick a photo for your wish.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Optional audio when recording wish videos.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

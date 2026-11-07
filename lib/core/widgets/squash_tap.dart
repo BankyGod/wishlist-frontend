@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../motion/feedback.dart';
 import '../motion/motion_tokens.dart';
+import '../theme/theme_context.dart';
 
 /// Squash-on-press wrapper (SRD UI-M3).
 /// Uses [InkWell.onTap] so taps still fire inside scrollables / with keyboard open.
@@ -43,11 +44,15 @@ class _SquashTapState extends State<SquashTap> {
 
   @override
   Widget build(BuildContext context) {
+    final animate = context.wishAllowDecorativeMotion;
+    final duration = context.wishDuration(MotionTokens.micro);
+    final scale = (!animate || !_pressed) ? 1.0 : MotionTokens.pressScale;
+
     return Opacity(
       opacity: _canTap || widget.onLongPress != null ? 1 : 0.45,
       child: AnimatedScale(
-        scale: _pressed ? MotionTokens.pressScale : 1,
-        duration: MotionTokens.micro,
+        scale: scale,
+        duration: duration,
         curve: Curves.easeOut,
         child: Material(
           type: MaterialType.transparency,

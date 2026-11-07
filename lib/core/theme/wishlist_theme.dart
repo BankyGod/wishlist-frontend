@@ -169,10 +169,19 @@ class WishlistThemeData {
       appBarTheme: AppBarTheme(
         backgroundColor: p.background,
         foregroundColor: p.onBackground,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: heading(22, FontWeight.w800),
+        // Always bake ink into the title style so a transparent AppBar
+        // (estimated as "dark" by Material) cannot wash titles to white.
+        titleTextStyle: heading(22, FontWeight.w800).copyWith(
+          color: p.onBackground,
+        ),
+        toolbarTextStyle: body(14).copyWith(color: p.onBackground),
         iconTheme: IconThemeData(color: p.onBackground),
+        actionsIconTheme: IconThemeData(color: p.onBackground),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: p.primary,
@@ -265,8 +274,13 @@ class WishlistThemeData {
         ),
       ),
       extensions: <ThemeExtension<dynamic>>[
-        WishlistThemeTokens(palette: p, fontPack: fontPack),
-        // Expose number style via a tiny custom hold if needed later.
+        WishlistThemeTokens(
+          palette: p,
+          fontPack: fontPack,
+          animationLevel: animationLevel,
+          dataSaver: dataSaver,
+          calmMode: calmMode,
+        ),
         _NumberTextStyle(number()),
       ],
     );

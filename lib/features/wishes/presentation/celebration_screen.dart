@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:wishlist/app/app_providers.dart';
 import 'package:wishlist/core/motion/feedback.dart';
+import 'package:wishlist/core/motion/motion_tokens.dart';
 import 'package:wishlist/core/theme/wishlist_colors.dart';
 import 'package:wishlist/core/widgets/wish_image.dart';
 
@@ -58,14 +59,19 @@ class _CelebrationScreenState extends ConsumerState<CelebrationScreen>
   void _startParty() {
     if (!mounted || _started) return;
     _started = true;
-    final confettiOn = ref.read(wishlistThemeProvider).confettiEnabled;
+    final theme = ref.read(wishlistThemeProvider);
+    final confettiOn = theme.confettiEnabled &&
+        theme.animationLevel != AnimationLevel.off &&
+        !theme.dataSaver;
     WishlistFeedback.celebration();
     if (confettiOn) {
       _centerConfetti.play();
       _leftConfetti.play();
       _rightConfetti.play();
     }
-    _shake?.forward(from: 0);
+    if (theme.animationLevel != AnimationLevel.off) {
+      _shake?.forward(from: 0);
+    }
   }
 
   void _continue() {

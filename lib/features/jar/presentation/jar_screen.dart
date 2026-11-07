@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:wishlist/app/app_providers.dart';
 import 'package:wishlist/core/motion/feedback.dart';
+import 'package:wishlist/core/motion/motion_tokens.dart';
 import 'package:wishlist/core/theme/theme_context.dart';
 import 'package:wishlist/core/widgets/sticker_button.dart';
 import 'package:wishlist/core/widgets/sticker_card.dart';
@@ -47,6 +48,16 @@ class _JarScreenState extends ConsumerState<JarScreen>
     final open = ref.read(demoStoreProvider).openWishes;
     if (open.isEmpty) return;
 
+    final level = ref.read(wishlistThemeProvider).animationLevel;
+    final shakeFor = MotionTokens.scale(MotionTokens.hero, level);
+    final holdFor = MotionTokens.scale(
+      const Duration(milliseconds: 850),
+      level,
+    );
+    _shake.duration = shakeFor == Duration.zero
+        ? const Duration(milliseconds: 1)
+        : shakeFor;
+
     setState(() {
       _busy = true;
       _revealing = false;
@@ -54,12 +65,16 @@ class _JarScreenState extends ConsumerState<JarScreen>
     });
 
     WishlistFeedback.tap();
-    await _shake.forward(from: 0);
+    if (level != AnimationLevel.off) {
+      await _shake.forward(from: 0);
+    }
 
     if (!mounted) return;
     setState(() => _revealing = true);
     WishlistFeedback.warning();
-    await Future<void>.delayed(const Duration(milliseconds: 850));
+    if (holdFor > Duration.zero) {
+      await Future<void>.delayed(holdFor);
+    }
 
     final pick = ref.read(demoStoreProvider).drawFromJar();
     if (!mounted) return;

@@ -59,24 +59,26 @@ Future<void> showAddWishSheet(
             const Gap(16),
             _Option(
               emoji: '📷',
-              label: 'Camera (demo photo)',
-              onTap: () => _createAndOpen(
+              label: 'Camera',
+              onTap: () => _fromPicker(
                 hostContext: context,
                 sheetContext: sheetContext,
                 ref: ref,
                 listId: listId,
-                urls: [_sampleImages[0]],
+                source: ImageSource.camera,
                 title: 'New camera wish',
               ),
             ),
             _Option(
               emoji: '🖼️',
               label: 'Gallery',
-              onTap: () => _fromGallery(
+              onTap: () => _fromPicker(
                 hostContext: context,
                 sheetContext: sheetContext,
                 ref: ref,
                 listId: listId,
+                source: ImageSource.gallery,
+                title: 'Gallery wish',
               ),
             ),
             _Option(
@@ -118,26 +120,37 @@ Future<void> showAddWishSheet(
   );
 }
 
-Future<void> _fromGallery({
+Future<void> _fromPicker({
   required BuildContext hostContext,
   required BuildContext sheetContext,
   required WidgetRef ref,
   String? listId,
+  required ImageSource source,
+  required String title,
 }) async {
-  String url = _sampleImages[0];
   try {
-    final file = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (file != null) url = file.path;
-  } catch (_) {}
-  if (!sheetContext.mounted) return;
-  await _createAndOpen(
-    hostContext: hostContext,
-    sheetContext: sheetContext,
-    ref: ref,
-    listId: listId,
-    urls: [url],
-    title: 'Gallery wish',
-  );
+    final file = await ImagePicker().pickImage(
+      source: source,
+      maxWidth: 1600,
+      imageQuality: 85,
+    );
+    if (file == null) return;
+    if (!sheetContext.mounted) return;
+    await _createAndOpen(
+      hostContext: hostContext,
+      sheetContext: sheetContext,
+      ref: ref,
+      listId: listId,
+      urls: [file.path],
+      title: title,
+    );
+  } catch (e) {
+    if (!sheetContext.mounted) return;
+    final label = source == ImageSource.camera ? 'camera' : 'gallery';
+    ScaffoldMessenger.of(hostContext).showSnackBar(
+      SnackBar(content: Text('Couldn’t open $label. Check permissions.')),
+    );
+  }
 }
 
 Future<void> _createAndOpen({

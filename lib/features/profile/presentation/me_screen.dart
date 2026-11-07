@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:wishlist/app/app_providers.dart';
 import 'package:wishlist/core/theme/theme_context.dart';
-import 'package:wishlist/core/theme/wishlist_theme.dart';
 import 'package:wishlist/core/widgets/brand_logo.dart';
+import 'package:wishlist/core/widgets/gamification_cards.dart';
 import 'package:wishlist/core/widgets/sticker_button.dart';
 import 'package:wishlist/core/widgets/sticker_card.dart';
 
@@ -46,6 +46,7 @@ class MeScreen extends ConsumerWidget {
           const Gap(12),
           StickerCard(
             color: cardFill,
+            onTap: () => context.push('/settings/profile'),
             child: Row(
               children: [
                 Container(
@@ -70,65 +71,77 @@ class MeScreen extends ConsumerWidget {
                       Text(profile.displayName, style: text.headlineSmall),
                       Text('@${profile.handle}', style: text.bodyMedium),
                       Text(
-                        'Level ${profile.level} · ${profile.levelTitle}',
+                        profile.isGuest
+                            ? 'Guest account'
+                            : 'Level ${profile.level} · ${profile.levelTitle}',
                         style: text.titleSmall?.copyWith(color: scheme.primary),
                       ),
+                      if (profile.email != null && profile.email!.isNotEmpty)
+                        Text(
+                          profile.email!,
+                          style: text.bodySmall?.copyWith(
+                            color: context.wishMutedInk,
+                          ),
+                        ),
                     ],
                   ),
                 ),
+                Icon(Icons.edit_outlined, color: context.wishInk),
               ],
             ),
           ),
-          const Gap(12),
-          StickerCard(
-            color: scheme.secondary.withValues(alpha: 0.28),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          if (profile.isGuest) ...[
+            const Gap(12),
+            StickerButton(
+              label: 'Create full account',
+              expand: true,
+              onPressed: () => context.push('/auth/create'),
+            ),
+          ],
+          if (!context.wishCalmMode) ...[
+            const Gap(12),
+            MeGamificationPanel(
+              profile: profile,
+              onOpenDetails: () => context.push('/stardust'),
+            ),
+            const Gap(20),
+            Row(
               children: [
-                Text('✨ Stardust', style: text.titleLarge),
-                Text(
-                  '${profile.stardustTotal}',
-                  style: context.wishNumberStyle.copyWith(color: scheme.primary),
+                Text('Badges', style: text.headlineSmall),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => context.push('/trophies'),
+                  child: const Text('Trophy room'),
                 ),
               ],
             ),
-          ),
-          const Gap(12),
-          StickerCard(
-            color: scheme.primary.withValues(alpha: 0.16),
-            child: Text(
-              '🔥 ${profile.streakDays}-day Wish Streak',
-              style: text.titleMedium,
+            const Gap(8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final b in badges)
+                  StickerCard(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    color: cardFill,
+                    child:
+                        Text('${b.emoji}  ${b.name}', style: text.labelLarge),
+                  ),
+              ],
             ),
-          ),
+          ],
           const Gap(20),
-          Row(
-            children: [
-              Text('Badges', style: text.headlineSmall),
-              const Spacer(),
-              TextButton(
-                onPressed: () => context.push('/trophies'),
-                child: const Text('Trophy room'),
-              ),
-            ],
+          StickerButton(
+            label: 'Edit profile',
+            expand: true,
+            filled: false,
+            icon: Icons.manage_accounts_outlined,
+            onPressed: () => context.push('/settings/profile'),
           ),
           const Gap(8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final b in badges)
-                StickerCard(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  color: cardFill,
-                  child: Text('${b.emoji}  ${b.name}', style: text.labelLarge),
-                ),
-            ],
-          ),
-          const Gap(20),
           StickerButton(
             label: 'Open settings',
             expand: true,

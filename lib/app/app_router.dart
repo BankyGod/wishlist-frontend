@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import 'package:wishlist/app/app_providers.dart';
 import 'package:wishlist/features/auth/presentation/auth_screen.dart';
+import 'package:wishlist/features/auth/presentation/create_account_screen.dart';
 import 'package:wishlist/features/auth/presentation/otp_screen.dart';
 import 'package:wishlist/features/auth/presentation/profile_setup_screen.dart';
 import 'package:wishlist/features/board/presentation/vision_board_screen.dart';
+import 'package:wishlist/features/gamification/presentation/stardust_screen.dart';
 import 'package:wishlist/features/gamification/presentation/trophy_room_screen.dart';
 import 'package:wishlist/features/home/presentation/app_shell.dart';
 import 'package:wishlist/features/lists/presentation/bin_screen.dart';
@@ -16,6 +18,9 @@ import 'package:wishlist/features/onboarding/presentation/onboarding_screen.dart
 import 'package:wishlist/features/onboarding/presentation/splash_screen.dart';
 import 'package:wishlist/features/savings/presentation/savings_screen.dart';
 import 'package:wishlist/features/settings/presentation/appearance_screen.dart';
+import 'package:wishlist/features/settings/presentation/help_screen.dart';
+import 'package:wishlist/features/settings/presentation/privacy_screen.dart';
+import 'package:wishlist/features/settings/presentation/profile_settings_screen.dart';
 import 'package:wishlist/features/settings/presentation/settings_screen.dart';
 import 'package:wishlist/features/sharing/presentation/share_list_screen.dart';
 import 'package:wishlist/features/wishes/presentation/celebration_screen.dart';
@@ -48,7 +53,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         return null;
       }
       if (signedIn) {
-        if (_isAuthRoute(loc)) return '/home';
+        // Guests may still open create-account / OTP / vibe setup to upgrade.
+        final guestUpgrade = store.profile.isGuest &&
+            (loc == '/auth/create' ||
+                loc.startsWith('/auth/otp') ||
+                loc == '/profile-setup');
+        if (_isAuthRoute(loc) && !guestUpgrade) return '/home';
         return null;
       }
       if (_isAuthRoute(loc)) return null;
@@ -68,8 +78,30 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const AuthScreen(),
         routes: [
           GoRoute(
+            path: 'create',
+            builder: (context, state) => const CreateAccountScreen(),
+          ),
+          GoRoute(
             path: 'otp',
-            builder: (context, state) => const OtpScreen(),
+            builder: (context, state) {
+              final extra = state.extra;
+              String? channel;
+              String? value;
+              Map<String, dynamic>? pending;
+              if (extra is Map) {
+                channel = extra['channel'] as String?;
+                value = extra['value'] as String?;
+                final rawPending = extra['pending'];
+                if (rawPending is Map) {
+                  pending = Map<String, dynamic>.from(rawPending);
+                }
+              }
+              return OtpScreen(
+                channel: channel,
+                value: value,
+                pendingProfile: pending,
+              );
+            },
           ),
         ],
       ),
@@ -131,14 +163,30 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SettingsScreen(),
         routes: [
           GoRoute(
+            path: 'profile',
+            builder: (context, state) => const ProfileSettingsScreen(),
+          ),
+          GoRoute(
             path: 'appearance',
             builder: (context, state) => const AppearanceScreen(),
+          ),
+          GoRoute(
+            path: 'help',
+            builder: (context, state) => const HelpScreen(),
+          ),
+          GoRoute(
+            path: 'privacy',
+            builder: (context, state) => const PrivacyScreen(),
           ),
         ],
       ),
       GoRoute(
         path: '/trophies',
         builder: (context, state) => const TrophyRoomScreen(),
+      ),
+      GoRoute(
+        path: '/stardust',
+        builder: (context, state) => const StardustScreen(),
       ),
       GoRoute(
         path: '/notifications',

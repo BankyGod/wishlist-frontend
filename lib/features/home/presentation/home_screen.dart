@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:wishlist/app/app_providers.dart';
 import 'package:wishlist/core/theme/theme_context.dart';
-import 'package:wishlist/core/theme/wishlist_theme.dart';
+import 'package:wishlist/core/widgets/gamification_cards.dart';
 import 'package:wishlist/core/widgets/sticker_card.dart';
 import 'package:wishlist/core/widgets/wish_image.dart';
 import 'package:wishlist/features/lists/data/demo_store.dart';
@@ -21,6 +21,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   String _query = '';
+  bool _showArchived = false;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +32,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final cardFill = context.wishCardFill;
     final outline = context.wishOutline;
 
-    var lists = store.lists.where((l) => !l.archived).toList()
+    var lists = store.lists.where((l) => l.archived == _showArchived).toList()
       ..sort((a, b) {
         if (a.pinned != b.pinned) return a.pinned ? -1 : 1;
         return a.sortOrder.compareTo(b.sortOrder);
@@ -96,45 +97,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ],
           ),
-          const Gap(16),
-          Row(
-            children: [
-              Expanded(
-                child: StickerCard(
-                  color: scheme.secondary.withValues(alpha: 0.28),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '✨ Stardust',
-                        style: text.titleSmall,
-                      ),
-                      Text(
-                        '${profile.stardustTotal}',
-                        style: context.wishNumberStyle,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const Gap(10),
-              Expanded(
-                child: StickerCard(
-                  color: scheme.primary.withValues(alpha: 0.18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('🔥 Streak', style: text.titleSmall),
-                      Text(
-                        '${profile.streakDays} days',
-                        style: context.wishNumberStyle,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+          if (!context.wishCalmMode) ...[
+            const Gap(16),
+            GamificationStrip(
+              profile: profile,
+              onTapStardust: () => context.push('/stardust'),
+              onTapStreak: () => context.push('/stardust'),
+            ),
+          ],
           const Gap(14),
           TextField(
             onChanged: (v) => setState(() => _query = v),
@@ -147,21 +117,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const Gap(18),
           Row(
             children: [
-              Text('Your lists', style: text.headlineSmall),
-              const Spacer(),
-              TextButton.icon(
-                onPressed: () => _createList(context, store),
-                icon: const Icon(Icons.add_rounded),
-                label: const Text('New'),
+              Text(
+                _showArchived ? 'Archived lists' : 'Your lists',
+                style: text.headlineSmall,
               ),
+              const Spacer(),
+              if (!_showArchived)
+                TextButton.icon(
+                  onPressed: () => _createList(context, store),
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('New'),
+                ),
             ],
+          ),
+          const Gap(4),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: () => setState(() => _showArchived = !_showArchived),
+              child: Text(
+                _showArchived ? 'Show active lists' : 'Show archived',
+              ),
+            ),
           ),
           const Gap(8),
           if (lists.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 40),
               child: Text(
-                'No lists yet — tap New ✨',
+                _showArchived
+                    ? 'No archived lists'
+                    : 'No lists yet — tap New ✨',
                 textAlign: TextAlign.center,
                 style: text.bodyLarge,
               ),
@@ -305,7 +291,9 @@ class _ListTileCard extends StatelessWidget {
                             style: text.titleLarge,
                           ),
                           Text(
-                            '$open open · $granted granted',
+                            list.archived
+                                ? 'Archived · $open open · $granted granted'
+                                : '$open open · $granted granted',
                             style: text.bodyMedium?.copyWith(
                               color: context.wishMutedInk,
                               fontWeight: FontWeight.w600,
@@ -314,7 +302,32 @@ class _ListTileCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Icon(Icons.chevron_right_rounded, color: context.wishInk),
+                    PopupMenuButton<String>(
+                      onSelected: (value) {
+                        switch (value) {
+                          case 'pin':
+                            store.togglePinList(list.id);
+                          case 'archive':
+                            store.archiveList(list.id, archived: !list.archived);
+                          case 'open':
+                            context.push('/lists/${list.id}');
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'pin',
+                          child: Text(list.pinned ? 'Unpin' : 'Pin'),
+                        ),
+                        PopupMenuItem(
+                          value: 'archive',
+                          child: Text(list.archived ? 'Unarchive' : 'Archive'),
+                        ),
+                        const PopupMenuItem(
+                          value: 'open',
+                          child: Text('Open'),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
                 if (previews.isNotEmpty) ...[

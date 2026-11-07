@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
+import 'package:lottie/lottie.dart';
 
 import '../theme/theme_context.dart';
 import '../theme/wishlist_colors.dart';
@@ -22,15 +23,28 @@ class EmptyWishy extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final animate = context.wishAllowDecorativeMotion;
     return Padding(
       padding: const EdgeInsets.all(WishlistColors.screenPadding),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('⭐', style: TextStyle(fontSize: 72))
-              .animate(onPlay: (c) => c.repeat(reverse: true))
-              .rotate(begin: -0.05, end: 0.05, duration: 900.ms)
-              .scale(begin: const Offset(1, 1), end: const Offset(1.06, 1.06)),
+          SizedBox(
+            width: 140,
+            height: 140,
+            child: animate
+                ? Lottie.asset(
+                    'assets/lottie/wishy_sparkle.json',
+                    repeat: true,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => const Text(
+                      '⭐',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 72),
+                    ),
+                  )
+                : const Text('⭐', style: TextStyle(fontSize: 72)),
+          ),
           const Gap(12),
           Text(
             'Wishy',
@@ -51,7 +65,9 @@ class EmptyWishy extends StatelessWidget {
             StickerButton(label: ctaLabel!, onPressed: onCta, expand: true),
           ],
         ],
-      ),
+      )
+          .animate(target: animate ? 1 : 0)
+          .fadeIn(duration: 300.ms),
     );
   }
 }

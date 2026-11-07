@@ -30,10 +30,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     super.dispose();
   }
 
-  void _goNext() {
+  Future<void> _goNext() async {
     if (!mounted) return;
     final store = ref.read(demoStoreProvider);
     final config = ref.read(appConfigProvider);
+    await store.ensureHydrated();
+    if (!mounted) return;
 
     // Demo flavor: jump straight into the seeded app so Home is never empty.
     if (config.demoMode && !store.signedIn) {

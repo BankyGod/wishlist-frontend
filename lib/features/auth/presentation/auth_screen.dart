@@ -21,6 +21,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
   late final TabController _tabs;
   final _phoneCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
+  bool _busy = false;
 
   @override
   void initState() {
@@ -37,12 +38,56 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
   }
 
   void _continue() {
-    context.push('/auth/otp');
+    final phone = _phoneCtrl.text.trim();
+    final email = _emailCtrl.text.trim();
+    final usingPhone = _tabs.index == 0;
+    if (usingPhone && phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a phone number')),
+      );
+      return;
+    }
+    if (!usingPhone && (email.isEmpty || !email.contains('@'))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a valid email')),
+      );
+      return;
+    }
+    context.push(
+      '/auth/otp',
+      extra: {
+        'channel': usingPhone ? 'phone' : 'email',
+        'value': usingPhone ? phone : email,
+      },
+    );
   }
 
   void _guest() {
     ref.read(demoStoreProvider).signInAsGuest();
     context.go('/home');
+  }
+
+  Future<void> _providerSignIn({
+    required String provider,
+    required String displayName,
+    required String email,
+    required String handle,
+  }) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    if (!mounted) return;
+    ref.read(demoStoreProvider).signIn(
+          displayName: displayName,
+          email: email,
+          handle: handle,
+        );
+    setState(() => _busy = false);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Signed in with $provider (demo)')),
+    );
+    context.go('/profile-setup');
   }
 
   @override
@@ -90,32 +135,61 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                   ),
                 ),
                 const Gap(16),
-                StickerButton(label: 'Continue', expand: true, onPressed: _continue),
+                StickerButton(
+                  label: 'Continue',
+                  expand: true,
+                  onPressed: _busy ? null : _continue,
+                ),
               ],
             ),
           ),
+          const Gap(12),
+          StickerButton(
+            label: 'Create account',
+            expand: true,
+            color: Theme.of(context).colorScheme.primary,
+            onPressed: _busy ? null : () => context.push('/auth/create'),
+          ),
           const Gap(16),
           StickerButton(
-            label: 'Continue with Google',
+            label: _busy ? 'Signing in…' : 'Continue with Google',
             filled: false,
             icon: Icons.g_mobiledata_rounded,
             expand: true,
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Google sign-in coming soon')),
-              );
-            },
+            onPressed: _busy
+                ? null
+                : () => _providerSignIn(
+                      provider: 'Google',
+                      displayName: 'Ama Google',
+                      email: 'ama.google@example.com',
+                      handle: 'ama_google',
+                    ),
+          ),
+          const Gap(8),
+          StickerButton(
+            label: _busy ? 'Signing in…' : 'Continue with Apple',
+            filled: false,
+            icon: Icons.apple,
+            expand: true,
+            onPressed: _busy
+                ? null
+                : () => _providerSignIn(
+                      provider: 'Apple',
+                      displayName: 'Ama Apple',
+                      email: 'ama.apple@example.com',
+                      handle: 'ama_apple',
+                    ),
           ),
           const Gap(16),
           StickerButton(
             label: 'Continue as guest (demo)',
+            filled: false,
             expand: true,
-            color: Theme.of(context).colorScheme.primary,
-            onPressed: _guest,
+            onPressed: _busy ? null : _guest,
           ),
           const Gap(8),
           Text(
-            'Explore the full app with seeded Accra demo data.',
+            'Create account or OAuth completes a local demo session until the real API is connected.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall,
           ),

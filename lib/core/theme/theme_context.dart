@@ -1,27 +1,40 @@
 import 'package:flutter/material.dart';
 
+import '../motion/motion_tokens.dart';
 import 'font_packs.dart';
 import 'wishlist_colors.dart';
 
-/// Palette + font pack carried on [ThemeData] so any widget can theme itself.
+/// Palette + font pack + experience flags on [ThemeData].
 @immutable
 class WishlistThemeTokens extends ThemeExtension<WishlistThemeTokens> {
   const WishlistThemeTokens({
     required this.palette,
     required this.fontPack,
+    this.animationLevel = AnimationLevel.full,
+    this.dataSaver = false,
+    this.calmMode = false,
   });
 
   final WishlistThemePalette palette;
   final FontPack fontPack;
+  final AnimationLevel animationLevel;
+  final bool dataSaver;
+  final bool calmMode;
 
   @override
   WishlistThemeTokens copyWith({
     WishlistThemePalette? palette,
     FontPack? fontPack,
+    AnimationLevel? animationLevel,
+    bool? dataSaver,
+    bool? calmMode,
   }) {
     return WishlistThemeTokens(
       palette: palette ?? this.palette,
       fontPack: fontPack ?? this.fontPack,
+      animationLevel: animationLevel ?? this.animationLevel,
+      dataSaver: dataSaver ?? this.dataSaver,
+      calmMode: calmMode ?? this.calmMode,
     );
   }
 
@@ -45,6 +58,19 @@ extension WishlistThemeContext on BuildContext {
   WishlistThemePalette get wishPalette => wishTokens.palette;
 
   FontPack get wishFontPack => wishTokens.fontPack;
+
+  AnimationLevel get wishAnimationLevel => wishTokens.animationLevel;
+
+  bool get wishDataSaver => wishTokens.dataSaver;
+
+  bool get wishCalmMode => wishTokens.calmMode;
+
+  /// Scaled duration for the active animation preference.
+  Duration wishDuration(Duration base) =>
+      MotionTokens.scale(base, wishAnimationLevel);
+
+  bool get wishAllowDecorativeMotion =>
+      MotionTokens.allowDecorative(wishAnimationLevel) && !wishDataSaver;
 
   Color get wishOutline =>
       wishPalette.onBackground.withValues(

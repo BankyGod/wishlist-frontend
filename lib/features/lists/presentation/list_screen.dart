@@ -15,6 +15,8 @@ import 'package:wishlist/features/wishes/presentation/add_wish_sheet.dart';
 
 enum _ListViewMode { grid, stack, board, timeline }
 
+enum _StatusFilter { all, open, maybeLater, granted }
+
 class ListScreen extends ConsumerStatefulWidget {
   const ListScreen({super.key, required this.listId});
 
@@ -26,6 +28,7 @@ class ListScreen extends ConsumerStatefulWidget {
 
 class _ListScreenState extends ConsumerState<ListScreen> {
   _ListViewMode _mode = _ListViewMode.grid;
+  _StatusFilter _status = _StatusFilter.all;
 
   @override
   Widget build(BuildContext context) {
@@ -37,34 +40,78 @@ class _ListScreenState extends ConsumerState<ListScreen> {
         body: const EmptyWishy(message: 'List not found'),
       );
     }
-    final wishes = store.wishesForList(widget.listId);
+    var wishes = store.wishesForList(widget.listId);
+    wishes = switch (_status) {
+      _StatusFilter.all => wishes,
+      _StatusFilter.open =>
+        wishes.where((w) => w.status == WishStatus.open).toList(),
+      _StatusFilter.maybeLater =>
+        wishes.where((w) => w.status == WishStatus.maybeLater).toList(),
+      _StatusFilter.granted =>
+        wishes.where((w) => w.status == WishStatus.granted).toList(),
+    };
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => showAddWishSheet(context, ref, listId: widget.listId),
-        child: const Icon(Icons.add_rounded),
-      ),
-      appBar: AppBar(
+    final ink = context.wishInk;
+    final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
+          color: ink,
+          fontWeight: FontWeight.w800,
+        );
+
+    return PlayfulBackdrop(
+      child: Scaffold(
         backgroundColor: Colors.transparent,
-        title: Text('${list.icon} ${list.name}'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.dashboard_customize_outlined),
-            onPressed: () => context.push('/lists/${widget.listId}/board'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.share_outlined),
-            onPressed: () => context.push('/share/${widget.listId}'),
-          ),
-        ],
-      ),
-      body: PlayfulBackdrop(
-        child: Column(
+        floatingActionButton: FloatingActionButton(
+          onPressed: () =>
+              showAddWishSheet(context, ref, listId: widget.listId),
+          child: const Icon(Icons.add_rounded),
+        ),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          foregroundColor: ink,
+          elevation: 0,
+          title: Text('${list.icon} ${list.name}', style: titleStyle),
+          iconTheme: IconThemeData(color: ink),
+          actionsIconTheme: IconThemeData(color: ink),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.dashboard_customize_outlined),
+              onPressed: () => context.push('/lists/${widget.listId}/board'),
+            ),
+            IconButton(
+              icon: const Icon(Icons.share_outlined),
+              onPressed: () => context.push('/share/${widget.listId}'),
+            ),
+          ],
+        ),
+        body: Column(
           children: [
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              child: Row(
+                children: _StatusFilter.values.map((s) {
+                  final selected = _status == s;
+                  final label = switch (s) {
+                    _StatusFilter.all => 'all',
+                    _StatusFilter.open => 'open',
+                    _StatusFilter.maybeLater => 'maybe later',
+                    _StatusFilter.granted => 'granted',
+                  };
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilterChip(
+                      selected: selected,
+                      label: Text(label),
+                      onSelected: (_) => setState(() => _status = s),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Row(
                 children: _ListViewMode.values.map((m) {
                   final selected = _mode == m;

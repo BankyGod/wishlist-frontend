@@ -21,26 +21,28 @@ Demo splash auto-enters Home as guest with seed lists.
 | Area | Status |
 |------|--------|
 | Splash → Home shell | Done (IndexedStack tabs) |
-| Home lists + create list | Done |
-| List views (grid/stack/timeline/board) | Done |
-| Add wish (+ sheet, camera/gallery/quick) | Done |
-| Wish detail, edit, delete+undo | Done |
+| Home lists + create / archive / pin | Done |
+| List views + status filters (open / maybe later / granted) | Done |
+| Add wish (real camera + gallery + quick) | Done |
+| Wish detail, edit, soft-delete Bin, maybe later | Done |
 | Savings + Reveal Meter + milestones | Done |
 | Grant slide + celebration confetti | Done |
 | Wish Jar draw | Done |
 | Granted Shelf | Done |
 | Vision Board drag stickers | Done |
-| Share link / privacy | Done |
-| Stardust, streak, Trophy room | Done |
-| Settings + themes + font packs | Done |
+| Share link / privacy / email invite | Done |
+| Stardust, streak, Trophy room (+ calm mode) | Done |
+| Settings + themes/fonts (persisted) + Help/Privacy | Done |
+| Local DemoStore JSON persistence | Done |
+| Lottie empty-state sparkle | Done |
 | Notifications inbox | Done |
 | Me profile | Done |
 
 ## Still later (needs backend / heavier assets)
 
 - Drift offline sync + real API (dio client stub exists)
-- Real OTP / Google / Apple auth
-- Rive/Lottie Wishicons & sound pack
+- Production OTP / Google / Apple OAuth SDKs (demo buttons exist)
+- Custom Rive Wishicons (folder ready; Lottie used for now)
 - Image editor / sticker cut-out
 - Full jar physics + FCM push
 - Admin console (web, out of this repo)

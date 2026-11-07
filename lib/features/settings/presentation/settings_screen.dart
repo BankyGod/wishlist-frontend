@@ -23,6 +23,26 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: context.wishScrollPadding(),
         children: [
+          Text('Account', style: Theme.of(context).textTheme.titleSmall),
+          const Gap(8),
+          StickerCard(
+            onTap: () => context.push('/settings/profile'),
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                Icons.person_outline_rounded,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              title: const Text('Profile'),
+              subtitle: Text(
+                store.profile.isGuest
+                    ? 'Guest · finish your account'
+                    : '@${store.profile.handle}',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+            ),
+          ),
+          const Gap(16),
           Text('Appearance', style: Theme.of(context).textTheme.titleSmall),
           const Gap(8),
           StickerCard(
@@ -132,7 +152,7 @@ class SettingsScreen extends ConsumerWidget {
               contentPadding: EdgeInsets.zero,
               secondary: const Icon(Icons.data_saver_off_outlined),
               title: const Text('Data saver'),
-              subtitle: const Text('Lighter images & fewer animations'),
+              subtitle: const Text('Smaller images & quieter motion'),
               value: themeData.dataSaver,
               onChanged: (v) =>
                   themeNotifier.update((t) => t.copyWith(dataSaver: v)),
@@ -144,7 +164,7 @@ class SettingsScreen extends ConsumerWidget {
               contentPadding: EdgeInsets.zero,
               secondary: const Icon(Icons.spa_outlined),
               title: const Text('Calm mode'),
-              subtitle: const Text('Turn off gamification nudges'),
+              subtitle: const Text('Hide stardust, streaks & badge nudges'),
               value: themeData.calmMode,
               onChanged: (v) =>
                   themeNotifier.update((t) => t.copyWith(calmMode: v)),
@@ -154,11 +174,7 @@ class SettingsScreen extends ConsumerWidget {
           Text('Support', style: Theme.of(context).textTheme.titleSmall),
           const Gap(8),
           StickerCard(
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Help centre coming soon')),
-              );
-            },
+            onTap: () => context.push('/settings/help'),
             child: const ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.help_outline),
@@ -168,11 +184,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const Gap(8),
           StickerCard(
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Privacy policy (demo stub)')),
-              );
-            },
+            onTap: () => context.push('/settings/privacy'),
             child: const ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.privacy_tip_outlined),

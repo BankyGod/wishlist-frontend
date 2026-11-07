@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:wishlist/app/app_providers.dart';
 import 'package:wishlist/core/theme/theme_context.dart';
 import 'package:wishlist/core/widgets/jelly_tab_bar.dart';
 import 'package:wishlist/core/widgets/playful_backdrop.dart';
@@ -28,6 +29,9 @@ class _AppShellState extends ConsumerState<AppShell> {
     super.initState();
     _tab = widget.initialTab.clamp(0, 4);
     if (_tab == 2) _tab = 0;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(demoStoreProvider).refreshStreakStatus();
+    });
   }
 
   int get _stackIndex {
@@ -55,6 +59,31 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(demoStoreProvider, (previous, next) {
+      final award = next.lastAward;
+      if (award == null) return;
+      final calm = ref.read(wishlistThemeProvider).calmMode;
+      if (calm) {
+        next.clearLastAward();
+        return;
+      }
+      final bits = <String>['+${award.amount} ✨ ${award.reason}'];
+      if (award.streakExtended) {
+        bits.add('🔥 ${award.streakDays}-day streak');
+      }
+      if (award.leveledUpTo != null) {
+        bits.add('Level ${award.leveledUpTo}!');
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(bits.join(' · ')),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(milliseconds: 2200),
+        ),
+      );
+      next.clearLastAward();
+    });
+
     return Scaffold(
       backgroundColor: context.wishPalette.background,
       body: Column(

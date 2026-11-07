@@ -18,17 +18,27 @@ class ProfileSetupScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
-  final _nameCtrl = TextEditingController();
-  String _emoji = '✨';
-  int _color = WishlistColors.wishViolet.toARGB32();
+  late final TextEditingController _nameCtrl;
+  late String _emoji;
+  late int _color;
 
-  static const _emojis = ['✨', '🌟', '💫', '🦄', '🌈', '🔥'];
+  static const _emojis = ['✨', '🌟', '💫', '🦄', '🌈', '🔥', '💚', '🎯'];
   static const _colors = [
     WishlistColors.wishViolet,
     WishlistColors.popPink,
     WishlistColors.mintGreen,
     WishlistColors.sunnyGold,
+    WishlistColors.skyBlue,
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    final profile = ref.read(demoStoreProvider).profile;
+    _nameCtrl = TextEditingController(text: profile.displayName);
+    _emoji = profile.avatarEmoji;
+    _color = profile.favouriteColor;
+  }
 
   @override
   void dispose() {
@@ -38,11 +48,13 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
   void _save() {
     final store = ref.read(demoStoreProvider);
+    final name = _nameCtrl.text.trim();
     store.updateProfile(
       store.profile.copyWith(
-        displayName: _nameCtrl.text.isEmpty ? store.profile.displayName : _nameCtrl.text,
+        displayName: name.isEmpty ? store.profile.displayName : name,
         avatarEmoji: _emoji,
         favouriteColor: _color,
+        isGuest: false,
       ),
     );
     context.go('/home');
@@ -50,24 +62,44 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final outline = context.wishOutline;
     return Scaffold(
       appBar: AppBar(title: const Text('Your vibe')),
       body: ListView(
         padding: context.wishScrollPadding(),
         children: [
+          Center(
+            child: Container(
+              width: 88,
+              height: 88,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Color(_color),
+                borderRadius: BorderRadius.circular(26),
+                border: Border.all(color: outline, width: 2.5),
+              ),
+              child: Text(_emoji, style: const TextStyle(fontSize: 40)),
+            ),
+          ),
+          const Gap(16),
           StickerCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 TextField(
                   controller: _nameCtrl,
+                  textCapitalization: TextCapitalization.words,
                   decoration: const InputDecoration(labelText: 'Display name'),
                 ),
                 const Gap(20),
-                Text('Pick an avatar', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Pick an avatar',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const Gap(8),
                 Wrap(
                   spacing: 8,
+                  runSpacing: 8,
                   children: _emojis.map((e) {
                     final selected = e == _emoji;
                     return SquashTap(
@@ -79,8 +111,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                           border: Border.all(
                             width: selected ? 3 : 2,
                             color: selected
-                                ? WishlistColors.wishViolet
-                                : WishlistColors.outline.withValues(alpha: 0.3),
+                                ? Theme.of(context).colorScheme.primary
+                                : outline,
                           ),
                         ),
                         child: Text(e, style: const TextStyle(fontSize: 28)),
@@ -89,27 +121,35 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   }).toList(),
                 ),
                 const Gap(20),
-                Text('Favourite colour', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Favourite colour',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const Gap(8),
-                Row(
+                Wrap(
+                  spacing: 12,
                   children: _colors.map((c) {
                     final selected = c.toARGB32() == _color;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: SquashTap(
-                        onTap: () => setState(() => _color = c.toARGB32()),
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: c,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              width: selected ? 3 : 2,
-                              color: WishlistColors.midnightInk,
-                            ),
+                    return SquashTap(
+                      onTap: () => setState(() => _color = c.toARGB32()),
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: c,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            width: selected ? 3 : 2,
+                            color: context.wishInk,
                           ),
                         ),
+                        child: selected
+                            ? const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 20,
+                              )
+                            : null,
                       ),
                     );
                   }).toList(),
@@ -118,7 +158,16 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
             ),
           ),
           const Gap(24),
-          StickerButton(label: 'Start wishing', expand: true, onPressed: _save),
+          StickerButton(
+            label: 'Start wishing',
+            expand: true,
+            onPressed: _save,
+          ),
+          const Gap(8),
+          TextButton(
+            onPressed: () => context.push('/settings/profile'),
+            child: const Text('More profile settings'),
+          ),
         ],
       ),
     );

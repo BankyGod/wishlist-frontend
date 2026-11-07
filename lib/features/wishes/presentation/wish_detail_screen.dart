@@ -233,6 +233,33 @@ class WishDetailScreen extends ConsumerWidget {
                       expand: true,
                       onPressed: () => context.push('/wishes/$wishId/grant'),
                     ),
+                    const Gap(8),
+                    StickerButton(
+                      label: 'Maybe later',
+                      filled: false,
+                      expand: true,
+                      onPressed: () {
+                        store.setWishStatus(wishId, WishStatus.maybeLater);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Parked in Maybe later'),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                  if (wish.status == WishStatus.maybeLater) ...[
+                    const Gap(8),
+                    StickerButton(
+                      label: 'Move back to open',
+                      expand: true,
+                      onPressed: () {
+                        store.setWishStatus(wishId, WishStatus.open);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Wish is open again')),
+                        );
+                      },
+                    ),
                   ],
                   const Gap(8),
                   StickerButton(

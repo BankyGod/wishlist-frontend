@@ -108,6 +108,7 @@ class Wish extends Equatable {
     this.savingsTotal = 0,
     this.sortOrder = 0,
     this.createdAt,
+    this.deletedAt,
   });
 
   final String id;
@@ -132,6 +133,9 @@ class Wish extends Equatable {
   final double savingsTotal;
   final int sortOrder;
   final DateTime? createdAt;
+  final DateTime? deletedAt;
+
+  bool get isDeleted => deletedAt != null;
 
   String get coverUrl => imageUrls.isNotEmpty ? imageUrls.first : '';
 
@@ -161,6 +165,8 @@ class Wish extends Equatable {
     double? savingsGoalAmount,
     double? savingsTotal,
     int? sortOrder,
+    DateTime? deletedAt,
+    bool clearDeletedAt = false,
   }) {
     return Wish(
       id: id,
@@ -185,6 +191,7 @@ class Wish extends Equatable {
       savingsTotal: savingsTotal ?? this.savingsTotal,
       sortOrder: sortOrder ?? this.sortOrder,
       createdAt: createdAt,
+      deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
     );
   }
 
@@ -212,6 +219,7 @@ class Wish extends Equatable {
         savingsTotal,
         sortOrder,
         createdAt,
+        deletedAt,
       ];
 }
 
@@ -292,6 +300,8 @@ class UserProfile extends Equatable {
     this.stardustTotal = 0,
     this.level = 1,
     this.streakDays = 0,
+    this.bestStreakDays = 0,
+    this.lastStreakDate,
     this.isGuest = false,
     this.currencyDefault = 'GHS',
   });
@@ -306,6 +316,9 @@ class UserProfile extends Equatable {
   final int stardustTotal;
   final int level;
   final int streakDays;
+  final int bestStreakDays;
+  /// Calendar day the streak was last advanced (date-only meaning).
+  final DateTime? lastStreakDate;
   final bool isGuest;
   final String currencyDefault;
 
@@ -333,6 +346,9 @@ class UserProfile extends Equatable {
     int? stardustTotal,
     int? level,
     int? streakDays,
+    int? bestStreakDays,
+    DateTime? lastStreakDate,
+    bool clearLastStreakDate = false,
     bool? isGuest,
     String? currencyDefault,
   }) {
@@ -347,6 +363,9 @@ class UserProfile extends Equatable {
       stardustTotal: stardustTotal ?? this.stardustTotal,
       level: level ?? this.level,
       streakDays: streakDays ?? this.streakDays,
+      bestStreakDays: bestStreakDays ?? this.bestStreakDays,
+      lastStreakDate:
+          clearLastStreakDate ? null : (lastStreakDate ?? this.lastStreakDate),
       isGuest: isGuest ?? this.isGuest,
       currencyDefault: currencyDefault ?? this.currencyDefault,
     );
@@ -364,6 +383,8 @@ class UserProfile extends Equatable {
         stardustTotal,
         level,
         streakDays,
+        bestStreakDays,
+        lastStreakDate,
         isGuest,
         currencyDefault,
       ];
